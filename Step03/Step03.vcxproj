@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -64,7 +64,7 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">_WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">_WIN64;_ALLOW_RTCc_IN_STL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(UseOfMfc)'=='Dynamic'">_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <!-- Added to avoid Narrow conversion warnings introduced in VS2015 /Wv:xx[.yy[.zzzzz],  is CL version -->
       <AdditionalOptions>/Wv:17.00.61030 %(AdditionalOptions)</AdditionalOptions>
@@ -72,8 +72,22 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Autodesk\Autodesk_ObjectARX_2019_Win_64_and_32_Bit\inc-x64;C:\Autodesk\Autodesk_ObjectARX_2019_Win_64_and_32_Bit\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Autodesk\Autodesk_ObjectARX_2019_Win_64_and_32_Bit\inc-x64;C:\Autodesk\Autodesk_ObjectARX_2019_Win_64_and_32_Bit\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</MinimalRebuild>
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</MinimalRebuild>
+      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</TreatWarningAsError>
+      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</TreatWarningAsError>
     </ClCompile>
     <Link>
+    </Link>
+    <Link>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Autodesk\Autodesk_ObjectARX_2019_Win_64_and_32_Bit\lib-x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">rxapi.lib;acdb23.lib;acge23.lib;acad.lib;ac1st23.lib;accore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <Link>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Autodesk\Autodesk_ObjectARX_2019_Win_64_and_32_Bit\lib-x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64'">rxapi.lib;acdb23.lib;acge23.lib;acad.lib;ac1st23.lib;accore.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -90,11 +104,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Step03.cpp" />
+    <ClCompile Include="utilities.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DocData.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="utilities.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Step03.rc" />

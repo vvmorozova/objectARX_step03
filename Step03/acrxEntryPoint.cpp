@@ -24,6 +24,7 @@
 //-----------------------------------------------------------------------------
 #include "StdAfx.h"
 #include "resource.h"
+#include "utilities.h"
 
 //-----------------------------------------------------------------------------
 #define szRDS _RXST("Adsk")
@@ -42,6 +43,16 @@ public:
 		AcRx::AppRetCode retCode =AcRxArxApp::On_kInitAppMsg (pkt) ;
 		
 		// TODO: Add your initialization code here
+		acedRegCmds->addCommand(L"CREATE_COMMANDS",
+			L"CREATE",
+			L"CREATE",
+			ACRX_CMD_TRANSPARENT,
+			AsdkStep03_CREATE);
+		acedRegCmds->addCommand(L"SETLAYER_COMMANDS",
+			L"SETLAYER",
+			L"SETLAYER",
+			ACRX_CMD_TRANSPARENT,
+			AsdkStep03_SETLAYER);
 
 		return (retCode) ;
 	}
@@ -119,6 +130,20 @@ public:
 	// callable function. Many return types are supported not just string
 	// or integer.
 	// ACED_ADSFUNCTION_ENTRY_AUTO(CStep03App, MyLispFunction, false)
+	static void AsdkStep03_CREATE()
+	{
+		AcDbObjectId objId;
+		createLayer(L"USER", objId);
+		acutPrintf(L"objId %d", objId);
+		createBlockRecord(L"EMPLOYEE");
+		applyCurDwgLayerTableChanges();
+	}
+
+	static void AsdkStep03_SETLAYER()
+	{
+
+	}
+
 	static int ads_MyLispFunction () {
 		//struct resbuf *args =acedGetArgs () ;
 		

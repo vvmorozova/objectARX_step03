@@ -1,5 +1,6 @@
 #pragma once
 #include "StdAfx.h" 
+
 //Declaration of createLayer():
 Acad::ErrorStatus createLayer(const TCHAR* layerName, AcDbObjectId& layerId);
 
