@@ -21,12 +21,28 @@ Acad::ErrorStatus createLayer(const TCHAR* layerName, AcDbObjectId& layerId)
 	Acad::ErrorStatus es = wDB->getLayerTable(layerTb, AcDb::kForWrite);
 
 	Acad::ErrorStatus nameExists = layerTb->getAt(layerName, layerId);
+	if (es != Acad::eOk) {
+		acutPrintf(L"Failed to open LayerTable\n");
+		return es;
+	}
+
 	if (nameExists == eKeyNotFound) {
 		AcDbLayerTableRecord *pLayerTblRcd = new AcDbLayerTableRecord;
 		pLayerTblRcd->setName(layerName);
-		layerTb->add(pLayerTblRcd);
-		pLayerTblRcd->close();
-		acutPrintf(L"\nCreating new layer\n");
+		if (layerTb->upgradeOpen() == Acad::eOk)
+		{
+			es = layerTb->add(pLayerTblRcd);
+			if (es != Acad::eOk) {
+				acutPrintf(L"Failed to add new layer\n");
+				delete pLayerTblRcd;  // Ensure to delete the object on failure
+				return es;
+			}
+			pLayerTblRcd->close();
+			acutPrintf(L"\nCreating new layer\n");
+
+		}
+		else
+			delete pLayerTblRcd;
 	}
 	else acutPrintf(L"\nLayer already exists");
 	layerTb->close();
@@ -46,7 +62,7 @@ Acad::ErrorStatus createBlockRecord(const TCHAR* name)
 	AcDbDatabase* wDB = acdbHostApplicationServices()->workingDatabase();
 
 	AcDbBlockTable *blockTb;
-	Acad::ErrorStatus es = wDB->getBlockTable(blockTb, AcDb::kForWrite);
+	Acad::ErrorStatus es = wDB->getBlockTable(blockTb, AcDb::kForRead);
 	bool hasBlock = blockTb->has(name);
 	if (hasBlock)
 	{
@@ -55,39 +71,80 @@ Acad::ErrorStatus createBlockRecord(const TCHAR* name)
 		return Acad::eDuplicateKey;
 	}
 	AcDbBlockTableRecord *newBlockRec = new AcDbBlockTableRecord;
-
-	newBlockRec->setOrigin(AcGePoint3d::kOrigin);
 	newBlockRec->setName(name);
+	newBlockRec->setOrigin(AcGePoint3d::kOrigin);
+
+	if ((es = blockTb->upgradeOpen()) != Acad::eOk) {
+		acutPrintf(L"\nFailed to open block table\n");
+		delete newBlockRec;
+		blockTb->close();
+		return (es);
+	}
 	Acad::ErrorStatus added = blockTb->add(newBlockRec);
-	//if (added == Acad::eOk)
-		//blockTb->close();
+	if (added != Acad::eOk) {
+		blockTb->close();
+		delete newBlockRec;
+		acutPrintf(L"Failed to add block table record\n");
+		return added;  // Return error status if add failed
+	}
+	blockTb->close();
 	double pi = 3.141592654;
 	// EMPLOYEE
 	acutPrintf(L"\nEMPLOYEE\n");
-	AcDbCircle *face = new AcDbCircle(AcGePoint3d(0, 0, 0), AcGeVector3d(0, 0, 1), 1.0);
-	uint16_t yellow = 255 + (255 << 8);
-	face->setColorIndex(yellow);
 
+	//AcDbBlockReference *blockOrigin = new AcDbBlockReference(AcGePoint3d(0, 0, 0));
+
+	AcDbCircle *face = new AcDbCircle(AcGePoint3d(0, 0, 0), AcGeVector3d(0, 0, 1), 1.0);
 	AcDbCircle *leftEye = new AcDbCircle(AcGePoint3d(0.33, 0.25, 0), AcGeVector3d(0, 0, 1), 0.1);
 	AcDbCircle *rightEye = new AcDbCircle(AcGePoint3d(-0.33, 0.25, 0), AcGeVector3d(0, 0, 1), 0.1);
-	uint16_t blue = 255;
-	leftEye->setColorIndex(blue);
-	rightEye->setColorIndex(blue);
-
 	AcDbArc *mouth = new AcDbArc(AcGePoint3d(0, 0.5, 0), 1.0, pi + (pi*0.3), pi + (pi*0.7));
-	uint16_t red = 255 << 16;
-	mouth->setColorIndex(red);
 
-	newBlockRec->appendAcDbEntity(face);
-	newBlockRec->appendAcDbEntity(leftEye);
-	newBlockRec->appendAcDbEntity(rightEye);
-	newBlockRec->appendAcDbEntity(mouth);
+	AcCmColor yellowColor;
+	yellowColor.setRGB(255, 255, 0);
+	AcCmColor blueColor;
+	blueColor.setRGB(0, 0, 255);
+	AcCmColor redColor;
+	redColor.setRGB(255, 0, 0);
 
+	/*face->setColor(yellowColor);
+	leftEye->setColor(blueColor);
+	rightEye->setColor(blueColor);
+	mouth->setColor(redColor);*/
+
+	face->setColorIndex(2);
+	leftEye->setColorIndex(5);
+	rightEye->setColorIndex(5);
+	mouth->setColorIndex(1);
+	if (face->upgradeOpen() != Acad::eOk)
+	{
+		acutPrintf(L"Failed append face\n");
+	}
+	AcDbObjectId faceId = AcDbObjectId::kNull;
+	if (newBlockRec->appendAcDbEntity(faceId, face) != Acad::eOk)
+	{
+		acutPrintf(L"Failed to append face\n");
+	}
 	face->close();
+
+	if (newBlockRec->appendAcDbEntity(leftEye) != Acad::eOk)
+	{
+		acutPrintf(L"Failed to append leftEye\n");
+	}
 	leftEye->close();
+
+	if (newBlockRec->appendAcDbEntity(rightEye) != Acad::eOk)
+	{
+		acutPrintf(L"Failed to append rightEye\n");
+	}
 	rightEye->close();
+
+	if (newBlockRec->appendAcDbEntity(mouth) != Acad::eOk)
+	{
+		acutPrintf(L"Failed to append mouth\n");
+	}
 	mouth->close();
+
 	newBlockRec->close();
-	blockTb->close();
+	//blockTb->close();
 	return Acad::eOk;
 }
