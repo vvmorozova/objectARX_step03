@@ -73,21 +73,27 @@ Acad::ErrorStatus createBlockRecord(const TCHAR* name)
 	AcDbBlockTableRecord *newBlockRec = new AcDbBlockTableRecord;
 	newBlockRec->setName(name);
 	newBlockRec->setOrigin(AcGePoint3d::kOrigin);
-
-	if ((es = blockTb->upgradeOpen()) != Acad::eOk) {
+	// 1 way
+	/*if ((es = blockTb->upgradeOpen()) != Acad::eOk) {
 		acutPrintf(L"\nFailed to open block table\n");
 		delete newBlockRec;
 		blockTb->close();
 		return (es);
 	}
+
+
 	Acad::ErrorStatus added = blockTb->add(newBlockRec);
 	if (added != Acad::eOk) {
 		blockTb->close();
 		delete newBlockRec;
 		acutPrintf(L"Failed to add block table record\n");
 		return added;  // Return error status if add failed
-	}
+	}*/
+	// 2 way
+	blockTb->getAt(ACDB_MODEL_SPACE, newBlockRec, AcDb::kForWrite);
 	blockTb->close();
+	AcDbObjectId recObjId = newBlockRec->id();
+	acutPrintf(L"\record ID %d\n", recObjId);
 	double pi = 3.141592654;
 	// EMPLOYEE
 	acutPrintf(L"\nEMPLOYEE\n");
@@ -106,39 +112,46 @@ Acad::ErrorStatus createBlockRecord(const TCHAR* name)
 	AcCmColor redColor;
 	redColor.setRGB(255, 0, 0);
 
-	/*face->setColor(yellowColor);
+	face->setColor(yellowColor);
 	leftEye->setColor(blueColor);
 	rightEye->setColor(blueColor);
-	mouth->setColor(redColor);*/
+	mouth->setColor(redColor);
 
-	face->setColorIndex(2);
+	/*face->setColorIndex(2);
 	leftEye->setColorIndex(5);
 	rightEye->setColorIndex(5);
-	mouth->setColorIndex(1);
-	if (face->upgradeOpen() != Acad::eOk)
+	mouth->setColorIndex(1);*/
+	/*if (face->upgradeOpen() != Acad::eOk)
 	{
 		acutPrintf(L"Failed append face\n");
-	}
-	AcDbObjectId faceId = AcDbObjectId::kNull;
-	if (newBlockRec->appendAcDbEntity(faceId, face) != Acad::eOk)
+	}*/
+	//AcDbObjectId faceId;
+	//if (newBlockRec->appendAcDbEntity(faceId, face) != Acad::eOk)
+	if (newBlockRec->appendAcDbEntity(face) != Acad::eOk)
 	{
 		acutPrintf(L"Failed to append face\n");
 	}
 	face->close();
 
+	//AcDbObjectId leftId;
+	//if (newBlockRec->appendAcDbEntity(leftId, leftEye) != Acad::eOk)
 	if (newBlockRec->appendAcDbEntity(leftEye) != Acad::eOk)
 	{
 		acutPrintf(L"Failed to append leftEye\n");
 	}
 	leftEye->close();
 
+	//AcDbObjectId rightId;
+	//if (newBlockRec->appendAcDbEntity(rightId, rightEye) != Acad::eOk)
 	if (newBlockRec->appendAcDbEntity(rightEye) != Acad::eOk)
 	{
 		acutPrintf(L"Failed to append rightEye\n");
 	}
 	rightEye->close();
 
-	if (newBlockRec->appendAcDbEntity(mouth) != Acad::eOk)
+	//AcDbObjectId mouthId;
+	//if (newBlockRec->appendAcDbEntity(mouthId, mouth) != Acad::eOk)
+		if (newBlockRec->appendAcDbEntity( mouth) != Acad::eOk)
 	{
 		acutPrintf(L"Failed to append mouth\n");
 	}

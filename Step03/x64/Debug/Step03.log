@@ -1,7 +1,5 @@
 ﻿cl : Command line warning D9035: option 'Gm' has been deprecated and will be removed in a future release
-  utilities.cpp
   acrxEntryPoint.cpp
-  Generating Code...
      Creating library x64\Debug\AdskStep03.lib and object x64\Debug\AdskStep03.exp
 rxapi.lib(libinit.obj) : warning LNK4099: PDB 'rxapi.pdb' was not found with 'rxapi.lib(libinit.obj)' or at 'C:\Users\jadoba\source\repos\Step03\x64\Debug\rxapi.pdb'; linking object as if no debug info
   Step03.vcxproj -> C:\Users\jadoba\source\repos\Step03\x64\Debug\AdskStep03.arx

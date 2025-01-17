@@ -164,76 +164,96 @@ public:
 	{
 		AcDbDatabase* wDB = acdbHostApplicationServices()->workingDatabase();
 
-		acutPrintf(L"\nhere1\n");//
 		AcDbBlockTable *blockTb;
-		Acad::ErrorStatus es = wDB->getBlockTable(blockTb, AcDb::kForRead);
+		Acad::ErrorStatus es = wDB->getSymbolTable(blockTb, AcDb::kForRead);
 		if (es != Acad::eOk) {
 			acutPrintf(L"Failed to open block table\n");
 			return;
 		}
-		//
+
 		AcDbBlockTableRecord *record;
 		es = blockTb->getAt(ACDB_MODEL_SPACE, record, AcDb::kForWrite);
+		blockTb->close();
 		if (es != Acad::eOk) {
 			acutPrintf(L"Failed to get model space block table record\n");
-			blockTb->close();
 			return;
 		}
-
-		blockTb->close();
 
 		AcDbBlockTableRecordIterator *iter;
 		es = record->newIterator(iter);
+		//record->close();
+		ACHAR *recName;
+		record->getName(recName);
+		acutPrintf(L"Record name %s\n", recName);
 		if (es != Acad::eOk) {
 			acutPrintf(L"Failed to create block table record iterator\n");
-			record->close();
 			return;
 		}
-		if (!(iter->done()))
-			acutPrintf(L"\niter is null\n");
-		else
-			acutPrintf(L"\niter is not null\n");
+		record->close();
 		iter->start();
 		AcDbEntity *entity;
 		acutPrintf(L"\niter points to null %d\n", iter->done());//
 		while (!iter->done())
 		{
 			es = iter->getEntity(entity, AcDb::kForRead);
+			iter->step();
 			if (es != Acad::eOk)
 			{
 				acutPrintf(L"\nCouldn't open entity.");
-				iter->step();
 				continue;
 			}
 
-			if (entity->isA() != AcDbBlockReference::desc()) //!
+			/*if (!(entity->isKindOf(AcDbBlockReference::desc()))) //!
 			{
-				acutPrintf(L"\nentity is not AcDbBlockReference.");
+				acutPrintf(L"\nentity is not AcDbBlockReference. %s", entity->isA()->name());
+
+				if (entity->isKindOf(AcDbBlockReference::desc())) {
+					acutPrintf(L"Entity is a block reference or derived class.\n");
+				}
+				else if (entity->isKindOf(AcDbProxyEntity::desc())) {
+					acutPrintf(L"Entity is a proxy object.\n");
+				}
+				else {
+					acutPrintf(L"Entity is not a block reference.\n");
+				}
+
 				entity->close();
-				iter->step();
+
+				continue;
+			}*/
+			acutPrintf(L"\nname or id %d\n", entity->ownerId());//
+			/*AcDbBlockReference *blockRef = AcDbBlockReference::cast(entity);
+			if (!blockRef) {
+				acutPrintf(L"\nblockRef is null\n");//
+				entity->close();
 				continue;
 			}
-
-			AcDbBlockReference *blockRef = AcDbBlockReference::cast(entity);
-			AcDbObjectId ObjId = blockRef->blockTableRecord();
+			AcDbObjectId ObjId = blockRef->blockTableRecord();*/
+			//AcDbObjectId ObjId = entity->ownerId();
 			AcDbBlockTableRecord *pBlockTableRecord;
-			if (acdbOpenObject((AcDbObject *&)pBlockTableRecord, ObjId, AcDb::kForRead) == Acad::eOk)
+			//if (acdbOpenObject((AcDbObject *&)pBlockTableRecord, ObjId, AcDb::kForRead) == Acad::eOk)
+			es = acdbOpenObject((AcDbObject *&)pBlockTableRecord, entity->ownerId(), AcDb::kForRead);
+			if ( es == Acad::eOk)
 			{
 				AcString name;
 				pBlockTableRecord->getName(name);
 				acutPrintf(L"\nname %s", name);
-				if (name == L"EMPLOYEE")
-				{
+				//if (name == L"EMPLOYEE")
+				//{
 					if (entity->upgradeOpen() == Acad::eOk)
-						blockRef->setLayer(L"USER");
-				}
+						entity->setLayer(L"USER");
+				//}
 				pBlockTableRecord->close();
 			}
-			iter->step();
+			else
+			{
+				const ACHAR* errorText = acadErrorStatusText(es);
+				acutPrintf(L"Error status: %s\n", errorText ? errorText : L"Unknown error");
+			}
+
 			entity->close();
 		}
-		record->close();
-		acutPrintf(L"\nhere3\n");//
+
 		//blockTb->close();
 	}
 
@@ -258,5 +278,6 @@ IMPLEMENT_ARX_ENTRYPOINT(CStep03App)
 ACED_ARXCOMMAND_ENTRY_AUTO(CStep03App, AdskMyGroup, MyCommand, MyCommandLocal, ACRX_CMD_MODAL, NULL)
 ACED_ARXCOMMAND_ENTRY_AUTO(CStep03App, AdskMyGroup, MyPickFirst, MyPickFirstLocal, ACRX_CMD_MODAL | ACRX_CMD_USEPICKSET, NULL)
 ACED_ARXCOMMAND_ENTRY_AUTO(CStep03App, AdskMyGroup, MySessionCmd, MySessionCmdLocal, ACRX_CMD_MODAL | ACRX_CMD_SESSION, NULL)
+//ACED_ARXCOMMAND_ENTRY_AUTO(CStep03App, AdskStep03, _SETLAYER, _CREATE, ACRX_CMD_MODAL | ACRX_CMD_SESSION, NULL)
 ACED_ADSSYMBOL_ENTRY_AUTO(CStep03App, MyLispFunction, false)
 
